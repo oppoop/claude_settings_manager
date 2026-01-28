@@ -1,5 +1,14 @@
 # Claude Settings Manager - TODO List
 
+## 🔄 Recent Updates (2026-01-28)
+
+- ✅ Fixed MacosTypography build error for macos_ui 2.2.2 compatibility
+- ✅ Successfully built macOS Release app (42.1MB)
+- ✅ Initialized Git repository with comprehensive .gitignore
+- ✅ Created initial commit following commit guidelines
+- ✅ Pushed to GitHub repository: https://github.com/oppoop/claude_settings_manager
+- ✅ Installed and configured GitHub CLI for authentication
+
 ## 🎯 Project Status
 
 ### ✅ Completed (Phase 1)
@@ -20,6 +29,10 @@
 - [x] Delete functionality with confirmation dialogs
 - [x] Confirmation dialog widget component
 - [x] Success/error notifications for delete operations
+- [x] Git repository initialization with proper .gitignore
+- [x] Fixed MacosTypography build error for macos_ui compatibility
+- [x] Successful macOS app build (Release configuration)
+- [x] GitHub repository setup and initial commit pushed
 
 ---
 
@@ -364,24 +377,25 @@
 
 These are high-priority items that provide immediate value:
 
-1. **Fix current sandbox issue** ✅ (Completed)
-2. **Enable skill deletion** ✅ (Completed - with confirmation dialog)
-3. **Enable agent deletion** ✅ (Completed - with confirmation dialog)
-4. **Add refresh buttons** ✅ (Completed - manual refresh available)
-5. **Edit Skills** - Edit SKILL.md content and metadata
-6. **Edit Agents** - Edit agent content and frontmatter
-7. **Add hooks screen** - Complete the hooks management UI
-8. **Enable settings editing** - Make settings.json editable
-9. **Improve error display** - Show detailed error messages
-10. **Add file watcher** - Auto-reload on external changes
+1. ✅ **Fix current sandbox issue** (Completed)
+2. ✅ **Enable skill deletion** (Completed - with confirmation dialog)
+3. ✅ **Enable agent deletion** (Completed - with confirmation dialog)
+4. ✅ **Add refresh buttons** (Completed - manual refresh available)
+5. ✅ **Git repository setup** (Completed - pushed to GitHub)
+6. **Edit Skills** - Edit SKILL.md content and metadata
+7. **Edit Agents** - Edit agent content and frontmatter
+8. **Add hooks screen** - Complete the hooks management UI
+9. **Enable settings editing** - Make settings.json editable
+10. **Improve error display** - Show detailed error messages
+11. **Add file watcher** - Auto-reload on external changes
 
 ---
 
 ## 🐛 Known Issues
 
-1. **Sandbox path issue** - macOS sandbox redirects HOME variable (Fix in progress)
+1. ~~**Sandbox path issue**~~ - ✅ Fixed: macOS sandbox handling implemented
 2. **No edit functionality** - Currently read-only (Phase 2)
-3. **No delete confirmation** - Direct delete without warning (Phase 2)
+3. ~~**No delete confirmation**~~ - ✅ Fixed: Confirmation dialogs implemented
 4. **No search** - Can't search through large lists (Phase 4)
 5. **No backup** - No way to backup current configuration (Phase 5)
 
