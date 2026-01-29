@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../providers/app_state_provider.dart';
 import '../models/skill_model.dart';
 import '../widgets/confirmation_dialog.dart';
+import '../widgets/edit_skill_dialog.dart';
+import '../widgets/create_skill_dialog.dart';
 import '../theme/app_theme.dart';
 
 class SkillsScreen extends StatefulWidget {
@@ -59,6 +63,11 @@ class _SkillsScreenState extends State<SkillsScreen> {
                               ),
                         ),
                         const Spacer(),
+                        MacosIconButton(
+                          icon: const MacosIcon(Icons.add, color: Colors.white),
+                          onPressed: _handleCreateSkill,
+                        ),
+                        const SizedBox(width: 4),
                         MacosIconButton(
                           icon: const MacosIcon(Icons.refresh, color: Colors.white),
                           onPressed: () {
@@ -183,6 +192,195 @@ class _SkillsScreenState extends State<SkillsScreen> {
     );
   }
 
+  /// Handle skill import
+  Future<void> _handleImportSkill() async {
+    try {
+      // Pick a directory
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: 'Select Skill Directory',
+      );
+
+      if (selectedDirectory == null) return;
+
+      final sourceDir = Directory(selectedDirectory);
+
+      if (!await sourceDir.exists()) {
+        throw Exception('Selected directory does not exist');
+      }
+
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      final importedSkill = await appState.skillService?.importSkill(sourceDir);
+
+      // Reload skills
+      await appState.loadSkills();
+
+      // Select the imported skill
+      if (importedSkill != null) {
+        setState(() {
+          _selectedSkill = appState.skills.firstWhere(
+            (s) => s.id == importedSkill.id,
+            orElse: () => importedSkill,
+          );
+        });
+      }
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Skill "${importedSkill?.name}" has been imported.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to import skill: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle skill creation
+  Future<void> _handleCreateSkill() async {
+    final result = await showMacosSheet<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const CreateSkillDialog(),
+    );
+
+    if (result == null) return;
+
+    try {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      final newSkill = await appState.skillService?.createSkill(
+        id: result['id'],
+        name: result['name'],
+        description: result['description'],
+        initialContent: result['content'],
+      );
+
+      // Reload skills
+      await appState.loadSkills();
+
+      // Select the newly created skill
+      if (newSkill != null) {
+        setState(() {
+          _selectedSkill = appState.skills.firstWhere(
+            (s) => s.id == newSkill.id,
+            orElse: () => newSkill,
+          );
+        });
+      }
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Skill "${result['name']}" has been created.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to create skill: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle skill editing
+  Future<void> _handleEditSkill(SkillModel skill) async {
+    final updatedSkill = await showMacosSheet<SkillModel>(
+      context: context,
+      builder: (context) => EditSkillDialog(skill: skill),
+    );
+
+    if (updatedSkill == null) return;
+
+    try {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      await appState.skillService?.saveSkill(updatedSkill);
+
+      // Reload skills
+      await appState.loadSkills();
+
+      // Update selection to the updated skill
+      setState(() {
+        _selectedSkill = appState.skills.firstWhere(
+          (s) => s.id == skill.id,
+          orElse: () => skill,
+        );
+      });
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Skill "${updatedSkill.name}" has been updated.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to update skill: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   /// Handle skill deletion with confirmation
   Future<void> _handleDeleteSkill(SkillModel skill) async {
     final confirmed = await showDeleteConfirmation(
@@ -277,6 +475,30 @@ class _SkillsScreenState extends State<SkillsScreen> {
                     style: MacosTheme.of(context).typography.largeTitle,
                   ),
                 ),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: () => _handleImportSkill(),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.download, size: 16),
+                      SizedBox(width: 6),
+                      Text('Import'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: () => _handleEditSkill(skill),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.edit, size: 16),
+                      SizedBox(width: 6),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 PushButton(
                   controlSize: ControlSize.regular,
                   secondary: true,

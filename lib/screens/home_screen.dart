@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import 'settings_screen.dart';
 import 'skills_screen.dart';
 import 'agents_screen.dart';
+import 'hooks_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -174,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         return const AgentsScreen();
       case 3:
-        return _buildPlaceholder('Hooks', 'Hooks management coming soon');
+        return const HooksScreen();
       case 4:
         return _buildPlaceholder('Backup', 'Backup & restore coming soon');
       case 5:

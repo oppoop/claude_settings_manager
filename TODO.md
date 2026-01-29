@@ -1,7 +1,31 @@
 # Claude Settings Manager - TODO List
 
-## 🔄 Recent Updates (2026-01-28)
+## 🔄 Recent Updates
 
+### 2026-01-29
+- ✅ Implemented Skills editing functionality with markdown editor
+- ✅ Implemented Agents editing functionality with metadata editor
+- ✅ Added Edit button to Skills detail view
+- ✅ Added Edit button to Agents detail view
+- ✅ Created EditSkillDialog with name, description, and content fields
+- ✅ Created EditAgentDialog with name, description, tools, model, and content fields
+- ✅ Implemented Skills creation functionality with validation
+- ✅ Implemented Agents creation functionality with validation
+- ✅ Added Create button (+ icon) to Skills screen header
+- ✅ Added Create button (+ icon) to Agents screen header
+- ✅ Created CreateSkillDialog with ID validation and content template
+- ✅ Created CreateAgentDialog with ID validation and content template
+- ✅ Implemented Skills import from external directory
+- ✅ Implemented Agents import from external .md file
+- ✅ Added Import button to Skills detail view
+- ✅ Added Import button to Agents detail view
+- ✅ Created Hooks management screen (read-only viewer)
+- ✅ Display all hook event types in sidebar
+- ✅ Show hook configurations with matcher and actions
+- ✅ Added Hooks to main navigation
+- ✅ Successfully built macOS Release app (42.6MB)
+
+### 2026-01-28
 - ✅ Fixed MacosTypography build error for macos_ui 2.2.2 compatibility
 - ✅ Successfully built macOS Release app (42.1MB)
 - ✅ Initialized Git repository with comprehensive .gitignore
@@ -59,59 +83,62 @@
   - [ ] Remove plugin entry
 
 ### Skills Management
-- [ ] **Edit Skills**
-  - [ ] Edit skill name and description
-  - [ ] Edit SKILL.md content with markdown editor
-  - [ ] Save changes back to file
+- [x] **Edit Skills**
+  - [x] Edit skill name and description
+  - [x] Edit SKILL.md content with markdown editor
+  - [x] Save changes back to file
   - [ ] Preview markdown rendering
 
-- [ ] **Create New Skills**
-  - [ ] New skill creation dialog
-  - [ ] Template selection
-  - [ ] Auto-generate SKILL.md structure
+- [x] **Create New Skills**
+  - [x] New skill creation dialog
+  - [x] Default content template
+  - [x] Auto-generate SKILL.md structure with frontmatter
+  - [x] ID validation (lowercase, alphanumeric, dash, underscore)
 
 - [x] **Delete Skills**
   - [x] Confirmation dialog
   - [x] Delete skill directory
   - [x] Refresh skill list
 
-- [ ] **Import Skills**
-  - [ ] Import from directory picker
-  - [ ] Validate skill structure
-  - [ ] Handle duplicate names
+- [x] **Import Skills**
+  - [x] Import from directory picker
+  - [x] Validate skill structure (SKILL.md required)
+  - [x] Handle duplicate names (error message)
   - [ ] Batch import multiple skills
 
 ### Agents Management
-- [ ] **Edit Agents**
-  - [ ] Edit agent metadata (name, description, tools, model)
-  - [ ] Edit agent content
-  - [ ] Model dropdown (opus/sonnet/haiku)
-  - [ ] Tools multi-select editor
+- [x] **Edit Agents**
+  - [x] Edit agent metadata (name, description, tools, model)
+  - [x] Edit agent content
+  - [x] Model dropdown (opus/sonnet/haiku)
+  - [x] Tools text editor (comma-separated)
 
-- [ ] **Create New Agents**
-  - [ ] New agent creation dialog
-  - [ ] Template selection
-  - [ ] Auto-generate frontmatter
+- [x] **Create New Agents**
+  - [x] New agent creation dialog
+  - [x] Default content template
+  - [x] Auto-generate frontmatter with all metadata
+  - [x] ID validation (lowercase, alphanumeric, dash, underscore)
 
 - [x] **Delete Agents**
   - [x] Confirmation dialog
   - [x] Delete agent file
   - [x] Refresh agent list
 
-- [ ] **Import Agents**
-  - [ ] Import from file picker
-  - [ ] Validate agent structure
-  - [ ] Handle duplicate names
+- [x] **Import Agents**
+  - [x] Import from file picker (.md files only)
+  - [x] Validate agent structure (frontmatter required)
+  - [x] Handle duplicate names (error message)
 
 ---
 
 ## 📋 Phase 3: Hooks Management Screen
 
 ### Hooks Viewer
-- [ ] **Create hooks_screen.dart**
-  - [ ] List all hook event types
-  - [ ] Show hooks grouped by event
-  - [ ] Display hook matcher and commands
+- [x] **Create hooks_screen.dart**
+  - [x] List all hook event types
+  - [x] Show hooks grouped by event
+  - [x] Display hook matcher and commands
+  - [x] Display hook actions with type and command
 
 ### Hooks Editor
 - [ ] **Visual Hook Editor**
@@ -382,12 +409,17 @@ These are high-priority items that provide immediate value:
 3. ✅ **Enable agent deletion** (Completed - with confirmation dialog)
 4. ✅ **Add refresh buttons** (Completed - manual refresh available)
 5. ✅ **Git repository setup** (Completed - pushed to GitHub)
-6. **Edit Skills** - Edit SKILL.md content and metadata
-7. **Edit Agents** - Edit agent content and frontmatter
-8. **Add hooks screen** - Complete the hooks management UI
-9. **Enable settings editing** - Make settings.json editable
-10. **Improve error display** - Show detailed error messages
-11. **Add file watcher** - Auto-reload on external changes
+6. ✅ **Edit Skills** (Completed - Full editing with markdown editor)
+7. ✅ **Edit Agents** (Completed - Full editing with metadata)
+8. ✅ **Create New Skills** (Completed - Dialog with validation and templates)
+9. ✅ **Create New Agents** (Completed - Dialog with validation and templates)
+10. ✅ **Import Skills** (Completed - Directory picker with validation)
+11. ✅ **Import Agents** (Completed - File picker with .md filter)
+12. ✅ **Add hooks screen** (Completed - Read-only viewer for hooks)
+13. **Enable hooks editing** - Add/edit/delete hook configurations
+14. **Enable settings editing** - Make settings.json editable
+15. **Improve error display** - Show detailed error messages
+16. **Add file watcher** - Auto-reload on external changes
 
 ---
 

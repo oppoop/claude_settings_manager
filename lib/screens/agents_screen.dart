@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../providers/app_state_provider.dart';
 import '../models/agent_model.dart';
 import '../widgets/confirmation_dialog.dart';
+import '../widgets/edit_agent_dialog.dart';
+import '../widgets/create_agent_dialog.dart';
 import '../theme/app_theme.dart';
 
 class AgentsScreen extends StatefulWidget {
@@ -59,6 +63,11 @@ class _AgentsScreenState extends State<AgentsScreen> {
                               ),
                         ),
                         const Spacer(),
+                        MacosIconButton(
+                          icon: const MacosIcon(Icons.add, color: Colors.white),
+                          onPressed: _handleCreateAgent,
+                        ),
+                        const SizedBox(width: 4),
                         MacosIconButton(
                           icon: const MacosIcon(Icons.refresh, color: Colors.white),
                           onPressed: () {
@@ -183,6 +192,199 @@ class _AgentsScreenState extends State<AgentsScreen> {
     );
   }
 
+  /// Handle agent import
+  Future<void> _handleImportAgent() async {
+    try {
+      // Pick a file
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        dialogTitle: 'Select Agent File',
+        type: FileType.custom,
+        allowedExtensions: ['md'],
+      );
+
+      if (result == null || result.files.single.path == null) return;
+
+      final sourceFile = File(result.files.single.path!);
+
+      if (!await sourceFile.exists()) {
+        throw Exception('Selected file does not exist');
+      }
+
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      final importedAgent = await appState.agentService?.importAgent(sourceFile);
+
+      // Reload agents
+      await appState.loadAgents();
+
+      // Select the imported agent
+      if (importedAgent != null) {
+        setState(() {
+          _selectedAgent = appState.agents.firstWhere(
+            (a) => a.id == importedAgent.id,
+            orElse: () => importedAgent,
+          );
+        });
+      }
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Agent "${importedAgent?.name}" has been imported.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to import agent: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle agent creation
+  Future<void> _handleCreateAgent() async {
+    final result = await showMacosSheet<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const CreateAgentDialog(),
+    );
+
+    if (result == null) return;
+
+    try {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      final newAgent = await appState.agentService?.createAgent(
+        id: result['id'],
+        name: result['name'],
+        description: result['description'],
+        tools: result['tools'] as List<String>?,
+        model: result['model'] as String?,
+        initialContent: result['content'],
+      );
+
+      // Reload agents
+      await appState.loadAgents();
+
+      // Select the newly created agent
+      if (newAgent != null) {
+        setState(() {
+          _selectedAgent = appState.agents.firstWhere(
+            (a) => a.id == newAgent.id,
+            orElse: () => newAgent,
+          );
+        });
+      }
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Agent "${result['name']}" has been created.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to create agent: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle agent editing
+  Future<void> _handleEditAgent(AgentModel agent) async {
+    final updatedAgent = await showMacosSheet<AgentModel>(
+      context: context,
+      builder: (context) => EditAgentDialog(agent: agent),
+    );
+
+    if (updatedAgent == null) return;
+
+    try {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      await appState.agentService?.saveAgent(updatedAgent);
+
+      // Reload agents
+      await appState.loadAgents();
+
+      // Update selection to the updated agent
+      setState(() {
+        _selectedAgent = appState.agents.firstWhere(
+          (a) => a.id == agent.id,
+          orElse: () => agent,
+        );
+      });
+
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Success'),
+            message: Text('Agent "${updatedAgent.name}" has been updated.'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showMacosAlertDialog(
+          context: context,
+          builder: (context) => MacosAlertDialog(
+            appIcon: const FlutterLogo(size: 56),
+            title: const Text('Error'),
+            message: Text('Failed to update agent: $e'),
+            primaryButton: PushButton(
+              controlSize: ControlSize.large,
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   /// Handle agent deletion with confirmation
   Future<void> _handleDeleteAgent(AgentModel agent) async {
     final confirmed = await showDeleteConfirmation(
@@ -277,6 +479,30 @@ class _AgentsScreenState extends State<AgentsScreen> {
                     style: MacosTheme.of(context).typography.largeTitle,
                   ),
                 ),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: () => _handleImportAgent(),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.download, size: 16),
+                      SizedBox(width: 6),
+                      Text('Import'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: () => _handleEditAgent(agent),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.edit, size: 16),
+                      SizedBox(width: 6),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 PushButton(
                   controlSize: ControlSize.regular,
                   secondary: true,
