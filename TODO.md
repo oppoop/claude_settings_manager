@@ -2,6 +2,27 @@
 
 ## 🔄 Recent Updates
 
+### 2026-02-03
+- ✅ Implemented Settings editing functionality (full CRUD)
+- ✅ Created EditRawJsonDialog with JSON validation and formatting
+- ✅ Created AddPermissionDialog with preset options and custom input
+- ✅ Created AddPluginDialog with name and enabled state
+- ✅ Extended SettingsService with updateIncludeCoAuthoredBy, addDenyPermission, removeDenyPermission, addPlugin, removePlugin, formatJson methods
+- ✅ Refactored SettingsScreen from read-only to fully editable
+- ✅ Added "Edit JSON" button for raw JSON editing
+- ✅ Added permissions management (add/remove allow/deny)
+- ✅ Added plugins management (toggle/add/remove)
+- ✅ Added proper null check handling for settingsService
+- ✅ Successfully built macOS Release app (43.0MB)
+
+### 2026-01-30
+- ✅ Implemented Hooks editing functionality (add/edit/delete)
+- ✅ Created EditHookDialog with matcher pattern and actions editor
+- ✅ Created CreateHookDialog with hook type selection and validation
+- ✅ Extended SettingsService with addHook, updateHook, deleteHook methods
+- ✅ Updated HooksScreen with CRUD buttons and operations
+- ✅ Successfully built macOS Release app (42.8MB)
+
 ### 2026-01-29
 - ✅ Implemented Skills editing functionality with markdown editor
 - ✅ Implemented Agents editing functionality with metadata editor
@@ -63,24 +84,24 @@
 ## 📋 Phase 2: Edit & Management Features
 
 ### Settings Management
-- [ ] **Edit settings.json directly**
-  - [ ] JSON editor with syntax highlighting
-  - [ ] Validate JSON before saving
-  - [ ] Show validation errors
-  - [ ] Format JSON automatically
+- [x] **Edit settings.json directly**
+  - [x] JSON editor with syntax highlighting
+  - [x] Validate JSON before saving
+  - [x] Show validation errors
+  - [x] Format JSON automatically
 
-- [ ] **Permissions Management**
-  - [ ] Add new permission to allow list
-  - [ ] Remove permission from allow list
+- [x] **Permissions Management**
+  - [x] Add new permission to allow list
+  - [x] Remove permission from allow list
   - [ ] Edit permission patterns
-  - [ ] Add/remove deny list entries
-  - [ ] Visual permission editor UI
+  - [x] Add/remove deny list entries
+  - [x] Visual permission editor UI
 
-- [ ] **Plugin Management**
-  - [ ] Toggle plugin enable/disable
+- [x] **Plugin Management**
+  - [x] Toggle plugin enable/disable
   - [ ] View plugin details
-  - [ ] Add new plugin entry
-  - [ ] Remove plugin entry
+  - [x] Add new plugin entry
+  - [x] Remove plugin entry
 
 ### Skills Management
 - [x] **Edit Skills**
@@ -141,11 +162,11 @@
   - [x] Display hook actions with type and command
 
 ### Hooks Editor
-- [ ] **Visual Hook Editor**
-  - [ ] Add new hook configuration
-  - [ ] Edit hook matcher pattern
-  - [ ] Edit hook command
-  - [ ] Delete hook
+- [x] **Visual Hook Editor**
+  - [x] Add new hook configuration
+  - [x] Edit hook matcher pattern
+  - [x] Edit hook command
+  - [x] Delete hook
   - [ ] Test hook pattern matching
 
 - [ ] **Hook Scripts Management**
@@ -416,8 +437,8 @@ These are high-priority items that provide immediate value:
 10. ✅ **Import Skills** (Completed - Directory picker with validation)
 11. ✅ **Import Agents** (Completed - File picker with .md filter)
 12. ✅ **Add hooks screen** (Completed - Read-only viewer for hooks)
-13. **Enable hooks editing** - Add/edit/delete hook configurations
-14. **Enable settings editing** - Make settings.json editable
+13. ✅ **Enable hooks editing** (Completed - Add/edit/delete hook configurations)
+14. ✅ **Enable settings editing** (Completed - JSON editor, permissions, plugins management)
 15. **Improve error display** - Show detailed error messages
 16. **Add file watcher** - Auto-reload on external changes
 

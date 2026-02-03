@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../models/settings_model.dart';
 import '../theme/app_theme.dart';
+import '../widgets/edit_hook_dialog.dart';
+import '../widgets/create_hook_dialog.dart';
+import '../widgets/confirmation_dialog.dart';
 
 class HooksScreen extends StatefulWidget {
   const HooksScreen({super.key});
@@ -15,13 +18,130 @@ class HooksScreen extends StatefulWidget {
 class _HooksScreenState extends State<HooksScreen> {
   String? _selectedHookType;
 
-  // Common hook event types
-  final List<String> _commonHookTypes = [
-    'user-prompt-submit-hook',
-    'tool-use-hook',
-    'task-start-hook',
-    'task-end-hook',
-  ];
+  Future<void> _handleCreateHook() async {
+    final result = await showMacosSheet<Map<String, dynamic>?>(
+      context: context,
+      builder: (context) => CreateHookDialog(
+        initialHookType: _selectedHookType,
+      ),
+    );
+
+    if (result != null && mounted) {
+      final hookType = result['hookType'] as String;
+      final config = result['config'] as HookConfig;
+
+      try {
+        final appState = Provider.of<AppStateProvider>(context, listen: false);
+        final settingsService = appState.settingsService;
+        if (settingsService == null) {
+          _showErrorDialog('Settings service not initialized');
+          return;
+        }
+        await settingsService.addHook(hookType, config);
+        await appState.loadSettings();
+
+        setState(() {
+          _selectedHookType = hookType;
+        });
+
+        if (mounted) {
+          _showSuccessNotification('Hook created successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          _showErrorDialog('Failed to create hook: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> _handleEditHook(String hookType, int index, HookConfig config) async {
+    final result = await showMacosSheet<HookConfig?>(
+      context: context,
+      builder: (context) => EditHookDialog(
+        hookType: hookType,
+        configIndex: index,
+        config: config,
+      ),
+    );
+
+    if (result != null && mounted) {
+      try {
+        final appState = Provider.of<AppStateProvider>(context, listen: false);
+        final settingsService = appState.settingsService;
+        if (settingsService == null) {
+          _showErrorDialog('Settings service not initialized');
+          return;
+        }
+        await settingsService.updateHook(hookType, index, result);
+        await appState.loadSettings();
+
+        if (mounted) {
+          _showSuccessNotification('Hook updated successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          _showErrorDialog('Failed to update hook: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> _handleDeleteHook(String hookType, int index) async {
+    final confirmed = await showDeleteConfirmation(
+      context: context,
+      itemName: 'Configuration ${index + 1}',
+      itemType: 'hook configuration',
+    );
+
+    if (confirmed && mounted) {
+      try {
+        final appState = Provider.of<AppStateProvider>(context, listen: false);
+        final settingsService = appState.settingsService;
+        if (settingsService == null) {
+          _showErrorDialog('Settings service not initialized');
+          return;
+        }
+        await settingsService.deleteHook(hookType, index);
+        await appState.loadSettings();
+
+        if (mounted) {
+          _showSuccessNotification('Hook deleted successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          _showErrorDialog('Failed to delete hook: $e');
+        }
+      }
+    }
+  }
+
+  void _showSuccessNotification(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showMacosAlertDialog(
+      context: context,
+      builder: (context) => MacosAlertDialog(
+        appIcon: const FlutterLogo(size: 56),
+        title: const Text('Error'),
+        message: Text(message),
+        primaryButton: PushButton(
+          controlSize: ControlSize.large,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +151,7 @@ class _HooksScreenState extends State<HooksScreen> {
         final hooks = settings?.hooks ?? {};
 
         // Get all hook types (both existing and common)
-        final allHookTypes = {..._commonHookTypes, ...hooks.keys}.toList()
+        final allHookTypes = {...commonHookTypes, ...hooks.keys}.toList()
           ..sort();
 
         return Row(
@@ -71,6 +191,10 @@ class _HooksScreenState extends State<HooksScreen> {
                               ),
                         ),
                         const Spacer(),
+                        MacosIconButton(
+                          icon: const MacosIcon(Icons.add, color: Colors.white),
+                          onPressed: _handleCreateHook,
+                        ),
                         MacosIconButton(
                           icon: const MacosIcon(Icons.refresh, color: Colors.white),
                           onPressed: () {
@@ -242,6 +366,11 @@ class _HooksScreenState extends State<HooksScreen> {
                     style: MacosTheme.of(context).typography.largeTitle,
                   ),
                 ),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: _handleCreateHook,
+                  child: const Text('Add Configuration'),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -268,6 +397,12 @@ class _HooksScreenState extends State<HooksScreen> {
                         'Hooks allow you to run custom commands in response to events.',
                         style: MacosTheme.of(context).typography.caption1,
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      PushButton(
+                        controlSize: ControlSize.regular,
+                        onPressed: _handleCreateHook,
+                        child: const Text('Create Hook'),
                       ),
                     ],
                   ),
@@ -307,6 +442,23 @@ class _HooksScreenState extends State<HooksScreen> {
               Text(
                 '${config.hooks?.length ?? 0} action(s)',
                 style: MacosTheme.of(context).typography.caption1,
+              ),
+              const SizedBox(width: 12),
+              MacosIconButton(
+                icon: MacosIcon(
+                  Icons.edit,
+                  color: MacosTheme.of(context).primaryColor,
+                  size: 18,
+                ),
+                onPressed: () => _handleEditHook(hookType, index, config),
+              ),
+              MacosIconButton(
+                icon: const MacosIcon(
+                  Icons.delete_outline,
+                  color: Colors.red,
+                  size: 18,
+                ),
+                onPressed: () => _handleDeleteHook(hookType, index),
               ),
             ],
           ),
@@ -349,9 +501,7 @@ class _HooksScreenState extends State<HooksScreen> {
                   ),
             ),
             const SizedBox(height: 8),
-            ...config.hooks!.asMap().entries.map((entry) {
-              final actionIndex = entry.key;
-              final action = entry.value;
+            ...config.hooks!.map((action) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Container(

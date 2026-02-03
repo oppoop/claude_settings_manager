@@ -136,4 +136,182 @@ class SettingsService {
 
     await config.settingsFile.writeAsString(jsonString);
   }
+
+  /// Add a new hook configuration to a hook type
+  Future<void> addHook(String hookType, HookConfig hookConfig) async {
+    final settings = await loadSettings();
+    final hooks = Map<String, List<HookConfig>>.from(
+      settings.hooks?.map((key, value) => MapEntry(key, List<HookConfig>.from(value))) ?? {},
+    );
+
+    if (hooks.containsKey(hookType)) {
+      hooks[hookType]!.add(hookConfig);
+    } else {
+      hooks[hookType] = [hookConfig];
+    }
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: settings.permissions,
+      enabledPlugins: settings.enabledPlugins,
+      hooks: hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Update an existing hook configuration
+  Future<void> updateHook(String hookType, int configIndex, HookConfig newConfig) async {
+    final settings = await loadSettings();
+    final hooks = Map<String, List<HookConfig>>.from(
+      settings.hooks?.map((key, value) => MapEntry(key, List<HookConfig>.from(value))) ?? {},
+    );
+
+    if (!hooks.containsKey(hookType) || configIndex >= (hooks[hookType]?.length ?? 0)) {
+      throw Exception('Hook configuration not found');
+    }
+
+    hooks[hookType]![configIndex] = newConfig;
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: settings.permissions,
+      enabledPlugins: settings.enabledPlugins,
+      hooks: hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Delete a hook configuration
+  Future<void> deleteHook(String hookType, int configIndex) async {
+    final settings = await loadSettings();
+    final hooks = Map<String, List<HookConfig>>.from(
+      settings.hooks?.map((key, value) => MapEntry(key, List<HookConfig>.from(value))) ?? {},
+    );
+
+    if (!hooks.containsKey(hookType) || configIndex >= (hooks[hookType]?.length ?? 0)) {
+      throw Exception('Hook configuration not found');
+    }
+
+    hooks[hookType]!.removeAt(configIndex);
+
+    // Remove the hook type entirely if no configurations remain
+    if (hooks[hookType]!.isEmpty) {
+      hooks.remove(hookType);
+    }
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: settings.permissions,
+      enabledPlugins: settings.enabledPlugins,
+      hooks: hooks.isEmpty ? null : hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Update includeCoAuthoredBy setting
+  Future<void> updateIncludeCoAuthoredBy(bool value) async {
+    final settings = await loadSettings();
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: value,
+      permissions: settings.permissions,
+      enabledPlugins: settings.enabledPlugins,
+      hooks: settings.hooks,
+    );
+    await saveSettings(updatedSettings);
+  }
+
+  /// Add permission to deny list
+  Future<void> addDenyPermission(String permission) async {
+    final settings = await loadSettings();
+    final permissions = settings.permissions ?? PermissionsConfig();
+    final denyList = List<String>.from(permissions.deny ?? []);
+
+    if (!denyList.contains(permission)) {
+      denyList.add(permission);
+
+      final updatedSettings = ClaudeSettings(
+        includeCoAuthoredBy: settings.includeCoAuthoredBy,
+        permissions: PermissionsConfig(
+          allow: permissions.allow,
+          deny: denyList,
+        ),
+        enabledPlugins: settings.enabledPlugins,
+        hooks: settings.hooks,
+      );
+
+      await saveSettings(updatedSettings);
+    }
+  }
+
+  /// Remove permission from deny list
+  Future<void> removeDenyPermission(String permission) async {
+    final settings = await loadSettings();
+    final permissions = settings.permissions;
+
+    if (permissions == null || permissions.deny == null) {
+      return;
+    }
+
+    final denyList = List<String>.from(permissions.deny!);
+    denyList.remove(permission);
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: PermissionsConfig(
+        allow: permissions.allow,
+        deny: denyList.isEmpty ? null : denyList,
+      ),
+      enabledPlugins: settings.enabledPlugins,
+      hooks: settings.hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Add new plugin entry
+  Future<void> addPlugin(String pluginName, bool enabled) async {
+    final settings = await loadSettings();
+    final plugins = Map<String, bool>.from(settings.enabledPlugins ?? {});
+    plugins[pluginName] = enabled;
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: settings.permissions,
+      enabledPlugins: plugins,
+      hooks: settings.hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Remove plugin entry
+  Future<void> removePlugin(String pluginName) async {
+    final settings = await loadSettings();
+    final plugins = Map<String, bool>.from(settings.enabledPlugins ?? {});
+    plugins.remove(pluginName);
+
+    final updatedSettings = ClaudeSettings(
+      includeCoAuthoredBy: settings.includeCoAuthoredBy,
+      permissions: settings.permissions,
+      enabledPlugins: plugins.isEmpty ? null : plugins,
+      hooks: settings.hooks,
+    );
+
+    await saveSettings(updatedSettings);
+  }
+
+  /// Format JSON string with proper indentation.
+  /// Throws [FormatException] if jsonString is not valid JSON.
+  static String formatJson(String jsonString) {
+    try {
+      final parsed = jsonDecode(jsonString);
+      final encoder = JsonEncoder.withIndent('  ');
+      return encoder.convert(parsed);
+    } on FormatException catch (e) {
+      throw FormatException('Invalid JSON: ${e.message}');
+    }
+  }
 }
